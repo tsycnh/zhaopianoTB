@@ -5,7 +5,7 @@ IMAGE_RATIO = 0.9
 IMAGE_WIDTH = int(IMAGE_RATIO*CANVAS_WIDTH)
 BLOCK_GAP = int((1-IMAGE_RATIO)*CANVAS_WIDTH/2)
 IMAGES_LIST = [
-'淘宝/信.jpg',
+'淘宝/信.png',
 '淘宝/淘宝图1：放大镜1.jpg',
 '淘宝/淘宝图2：打印效果.jpg',
 '淘宝/淘宝图3：PDF+JPG.jpg',
@@ -31,7 +31,7 @@ class Canvas():
     def append(self,image,round_corner = -1):
         image,mask = self.formatImage(image,round_corner=round_corner)
         new_height = self.canvas.height + image.height + BLOCK_GAP
-        new_canvas = Image.new('RGB',size=(self.canvas.width,new_height))
+        new_canvas = Image.new('RGBA',size=(self.canvas.width,new_height))
         validbg = self.validBg(image.height+BLOCK_GAP)
         new_bg = validbg.crop(box=(0, 0, CANVAS_WIDTH-1, image.height+BLOCK_GAP))
         new_canvas.paste(self.canvas)#粘之前的图
@@ -93,11 +93,21 @@ class Canvas():
 
 
 if __name__ == '__main__':
+    score_img = Image.open('score.jpg')
+    score_title = Image.open('淘宝/淘宝图0：乐谱预览.jpg')
     imgs = load_images(IMAGES_LIST)
 
     c = Canvas(CANVAS_WIDTH)
-    # bg = c.validBg(5000)
-    # bg.show()
+
+    # 拼接乐谱预览图
+    score_img = c.formatImage(score_img,CANVAS_WIDTH)
+    score_title = c.formatImage(score_title,CANVAS_WIDTH)
+    score = Image.new('RGB',size=(CANVAS_WIDTH,int(score_title.height+score_img.height)))
+    score.paste(score_title)
+    score.paste(score_img,box=(0,score_title.height))
+
+    imgs.insert(1,score)
+    imgs[0].show()
     for img in imgs:
         c.append(img,round_corner=50)
     ex_imgs = c.export()
