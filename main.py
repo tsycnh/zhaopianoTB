@@ -1,19 +1,23 @@
-from PIL import Image,ImageDraw
+#-*- coding:gbK -*-
+#!/usr/bin/env python
+
+from PIL import Image,ImageDraw,ImageFont
+from utils import image_stitch,add_text
 CANVAS_WIDTH = 1200
 IMAGE_RATIO = 0.9
 IMAGE_WIDTH = int(IMAGE_RATIO*CANVAS_WIDTH)
 BLOCK_GAP = int((1-IMAGE_RATIO)*CANVAS_WIDTH/2)
 IMAGES_LIST = [
-'æ·˜å®/ä¿¡.png',
-'æ·˜å®/æ·˜å®å›¾1ï¼šæ”¾å¤§é•œ1.jpg',
-'æ·˜å®/æ·˜å®å›¾2ï¼šæ‰“å°æ•ˆæœ.jpg',
-'æ·˜å®/æ·˜å®å›¾3ï¼šPDF+JPG.jpg',
-'æ·˜å®/æ·˜å®å›¾4ï¼šæŒ‡æ³•æ ‡æ³¨.jpg',
-'æ·˜å®/æ·˜å®å›¾5ï¼šæ•™å­¦è§†é¢‘.jpg',
-'æ·˜å®/æ·˜å®å›¾6ï¼šæ¼”å¥éŸ³é¢‘.jpg',
-'æ·˜å®/æ·˜å®å›¾7ï¼šç²‰ä¸ç¾¤.jpg',
-'æ·˜å®/æ·˜å®å›¾8ï¼šå‘è´§è¯´æ˜.jpg',
-'æ·˜å®/æ·˜å®å›¾9ï¼šäº”æ˜Ÿå¥½è¯„.jpg'
+'ÌÔ±¦/ĞÅ.png',
+'ÌÔ±¦/ÌÔ±¦Í¼1£º·Å´ó¾µ1.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼2£º´òÓ¡Ğ§¹û.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼3£ºPDF+JPG.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼4£ºÖ¸·¨±ê×¢.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼5£º½ÌÑ§ÊÓÆµ.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼6£ºÑİ×àÒôÆµ.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼7£º·ÛË¿Èº.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼8£º·¢»õËµÃ÷.jpg',
+'ÌÔ±¦/ÌÔ±¦Í¼9£ºÎåĞÇºÃÆÀ.jpg'
 ]
 EXPORT_HEIGHT = 1920
 def load_images(file_list):
@@ -33,19 +37,19 @@ class Canvas():
         new_canvas = Image.new('RGBA',size=(self.canvas.width,new_height))
         validbg = self.validBg(image.height+BLOCK_GAP)
         new_bg = validbg.crop(box=(0, 0, CANVAS_WIDTH-1, image.height+BLOCK_GAP))
-        new_canvas.paste(self.canvas)#ç²˜ä¹‹å‰çš„å›¾
+        new_canvas.paste(self.canvas)#Õ³Ö®Ç°µÄÍ¼
         x = int((self.canvas.width-image.width)/2)
         new_canvas.paste(new_bg,(0,self.canvas.height))
         new_canvas.paste(image,(x,self.canvas.height),mask=mask)
         self.canvas = new_canvas
     def append_png(self,image):
-        # å°†image2æ¥åœ¨image1ä¸‹é¢
+        # ½«image2½ÓÔÚimage1ÏÂÃæ
         image= self.formatImage(image)
         new_height = self.canvas.height + image.height + BLOCK_GAP
         new_canvas = Image.new('RGBA',size=(self.canvas.width,new_height))
         validbg = self.validBg(image.height+BLOCK_GAP)
         new_bg = validbg.crop(box=(0, 0, CANVAS_WIDTH-1, image.height+BLOCK_GAP))
-        new_canvas.paste(self.canvas)#ç²˜ä¹‹å‰çš„å›¾
+        new_canvas.paste(self.canvas)#Õ³Ö®Ç°µÄÍ¼
         x = int((self.canvas.width-image.width)/2)
         new_canvas.paste(new_bg,(0,self.canvas.height))
         new_canvas.paste(image,(x,self.canvas.height),mask=image)
@@ -56,7 +60,7 @@ class Canvas():
         new_img = img.resize(size=(new_w,new_h))
 
         if round_corner > 0:
-            mask = Image.new(mode='L',size=new_img.size) # 8bitç°åº¦å›¾
+            mask = Image.new(mode='L',size=new_img.size) # 8bit»Ò¶ÈÍ¼
             draw = ImageDraw.Draw(mask)
             d = 2*round_corner
             w,h = mask.width,mask.height
@@ -99,26 +103,26 @@ class Canvas():
             ex_imgs.append(img)
         if save_to_disk:
             for key,item in enumerate(ex_imgs):
-                item.save('./è¾“å‡º/æ·˜å®å›¾'+str(key)+'.jpg')
+                item.save('./Êä³ö/ÌÔ±¦Í¼'+str(key)+'.jpg')
         return ex_imgs
 
 
 if __name__ == '__main__':
-    score_img = Image.open('score.jpg')
-    score_title = Image.open('æ·˜å®/æ·˜å®å›¾0ï¼šä¹è°±é¢„è§ˆ.jpg')
+    score_title     = Image.open('ÌÔ±¦/ÌÔ±¦Í¼0£ºÀÖÆ×Ô¤ÀÀ.jpg')
+    score_img       = Image.open('score.jpg')
+    score_bottom    = Image.open('ÌÔ±¦/ÌÔ±¦Í¼10£ºblank.jpg')
+
     imgs = load_images(IMAGES_LIST)
 
     c = Canvas(CANVAS_WIDTH)
 
-    # æ‹¼æ¥ä¹è°±é¢„è§ˆå›¾
-    score_img = c.formatImage(score_img,CANVAS_WIDTH)
-    score_title = c.formatImage(score_title,CANVAS_WIDTH)
-    score = Image.new('RGB',size=(CANVAS_WIDTH,int(score_title.height+score_img.height)))
-    score.paste(score_title)
-    score.paste(score_img,box=(0,score_title.height))
+    score_bottom = add_text(score_bottom,'È«Æ×¹²9Ò³','ººÒÇĞ¡ÂóÌå¼ò.ttf')
 
+    score = image_stitch(score_title,score_img)
+    score = image_stitch(score,score_bottom)
     imgs.insert(1,score)
-
+    score.show()
+    exit()
     for key,img in enumerate(imgs):
         if key == 0:
             c.append_png(img)
