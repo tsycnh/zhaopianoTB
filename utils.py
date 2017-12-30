@@ -1,4 +1,11 @@
 from PIL import Image,ImageDraw,ImageFont
+def load_images(file_list):
+    imgs = []
+    for path in file_list:
+        img =Image.open(path)
+        imgs.append(img)
+    return imgs
+
 def image_stitch(image1,image2,direction='bottom'):
     #将image2接在image1上，image2的尺寸会根据image1进行动态调整
     if direction=='bottom':
@@ -21,8 +28,8 @@ def add_text(image,text,font_file):
     txt = text
     font_size = font.getsize(text=txt)
     font_offset = font.getoffset(text=txt)
-    print(font_size,font_offset)
+    # print(font_size,font_offset)
     t_x = int((image.width - font_size[0])/2)
-    t_y = int((image.height-font_size[1]-font_offset[1])/2)
+    t_y = int((image.height-font_size[1])/2-font_offset[1])
     draw.text(xy=(t_x,t_y),text=txt,fill=(0),font=font)
     return image

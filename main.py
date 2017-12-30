@@ -1,8 +1,12 @@
 #-*- coding:gbK -*-
 #!/usr/bin/env python
 
-from PIL import Image,ImageDraw,ImageFont
-from utils import image_stitch,add_text
+from PIL import Image,ImageDraw
+from utils import image_stitch,add_text,load_images
+import argparse
+import os.path
+import shutil
+
 CANVAS_WIDTH = 1200
 IMAGE_RATIO = 0.9
 IMAGE_WIDTH = int(IMAGE_RATIO*CANVAS_WIDTH)
@@ -20,12 +24,7 @@ IMAGES_LIST = [
 '淘宝/淘宝图9：五星好评.jpg'
 ]
 EXPORT_HEIGHT = 1920
-def load_images(file_list):
-    imgs = []
-    for path in file_list:
-        img =Image.open(path)
-        imgs.append(img)
-    return imgs
+
 class Canvas():
     def __init__(self,width):
         self.bg = self.formatImage(Image.open('bg5.jpg'),new_w=CANVAS_WIDTH)
@@ -85,7 +84,7 @@ class Canvas():
             bg = new_bg
             i+=1
         return bg
-    def export(self,save_to_disk = True):
+    def export(self,save_to_disk = ""):
         current_height = self.canvas.height
         if current_height%EXPORT_HEIGHT == 0:
             total_pages = current_height//EXPORT_HEIGHT
@@ -101,32 +100,50 @@ class Canvas():
                 bottom = self.canvas.height - 1
             img = self.canvas.crop(box=(left,top,right,bottom))
             ex_imgs.append(img)
-        if save_to_disk:
+        if save_to_disk != "":
+            if os.path.exists(save_to_disk):
+                shutil.rmtree(save_to_disk)
+            os.mkdir(save_to_disk)
             for key,item in enumerate(ex_imgs):
-                item.save('./输出/淘宝图'+str(key)+'.jpg')
+                item.save(save_to_disk+'/淘宝图'+str(key)+'.jpg')
         return ex_imgs
 
-
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('score_file',help='请输入乐谱第一页的文件路径',type=str)
+    parser.add_argument('pages',help='请输入全谱页数',type=str)
+    parser.add_argument('--nofinger',help='添加此参数表示不输出指法页',action='store_true')
+    parser.add_argument('--novideo',help='添加此参数表示不输出教学视频页',action='store_true')
+    parser.add_argument('--noaudio',help='添加此参数表示不输出演奏音频页',action='store_true')
+    args = parser.parse_args()
+    file_name = os.path.basename(args.score_file).split('.')[-2]
+    output_dir = os.path.dirname(args.score_file)+'/'+str(file_name)
+
     score_title     = Image.open('淘宝/淘宝图0：乐谱预览.jpg')
-    score_img       = Image.open('score.jpg')
+    score_img       = Image.open(args.score_file)
     score_bottom    = Image.open('淘宝/淘宝图10：blank.jpg')
 
-    imgs = load_images(IMAGES_LIST)
 
+
+    if args.nofinger:
+        IMAGES_LIST.remove('淘宝/淘宝图4：指法标注.jpg')
+    if args.novideo:
+        IMAGES_LIST.remove('淘宝/淘宝图5：教学视频.jpg')
+    if args.noaudio:
+        IMAGES_LIST.remove('淘宝/淘宝图6：演奏音频.jpg')
+    imgs = load_images(IMAGES_LIST)
     c = Canvas(CANVAS_WIDTH)
 
-    score_bottom = add_text(score_bottom,'全谱共9页','汉仪小麦体简.ttf')
+    score_bottom = add_text(score_bottom,'全谱共'+args.pages+'页','汉仪小麦体简.ttf')
 
     score = image_stitch(score_title,score_img)
     score = image_stitch(score,score_bottom)
     imgs.insert(1,score)
-    score.show()
-    exit()
+
     for key,img in enumerate(imgs):
         if key == 0:
             c.append_png(img)
         else:
             c.append(img,round_corner=50)
-    ex_imgs = c.export()
+    ex_imgs = c.export(save_to_disk=output_dir)
 
