@@ -92,12 +92,12 @@ class Canvas():
             total_pages = current_height//EXPORT_HEIGHT + 1
         ex_imgs = []
         for i in range(total_pages):
-            left,right = 0,self.canvas.width - 1
+            left,right = 0,self.canvas.width
             top = i*EXPORT_HEIGHT
 
-            bottom = (i+1)*EXPORT_HEIGHT - 1
-            if bottom > self.canvas.height - 1:
-                bottom = self.canvas.height - 1
+            bottom = (i+1)*EXPORT_HEIGHT
+            if bottom > self.canvas.height :
+                bottom = self.canvas.height
             img = self.canvas.crop(box=(left,top,right,bottom))
             ex_imgs.append(img)
         if save_to_disk != "":
@@ -105,7 +105,7 @@ class Canvas():
                 shutil.rmtree(save_to_disk)
             os.mkdir(save_to_disk)
             for key,item in enumerate(ex_imgs):
-                item.save(save_to_disk+'/Ã‘±¶Õº'+str(key)+'.jpg')
+                item.save(save_to_disk+'/Ã‘±¶Õº'+str(key)+'.jpg',quality=100)
         return ex_imgs
 
 if __name__ == '__main__':
