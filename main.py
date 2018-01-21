@@ -19,7 +19,7 @@ IMAGES_LIST = [
 'ÌÔ±¦/ÌÔ±¦Í¼4£ºÖ¸·¨±ê×¢.jpg',
 'ÌÔ±¦/ÌÔ±¦Í¼5£º½ÌÑ§ÊÓÆµ.jpg',
 'ÌÔ±¦/ÌÔ±¦Í¼6£ºÑİ×àÒôÆµ.jpg',
-'ÌÔ±¦/ÌÔ±¦Í¼7£º·ÛË¿Èº.jpg',
+# 'ÌÔ±¦/ÌÔ±¦Í¼7£º·ÛË¿Èº.jpg',
 'ÌÔ±¦/ÌÔ±¦Í¼8£º·¢»õËµÃ÷.jpg',
 'ÌÔ±¦/ÌÔ±¦Í¼9£ºÎåĞÇºÃÆÀ.jpg'
 ]
@@ -27,32 +27,17 @@ EXPORT_HEIGHT = 1920
 
 class Canvas():
     def __init__(self,width):
-        self.bg = self.formatImage(Image.open('bg5.jpg'),new_w=CANVAS_WIDTH)
-        self.canvas = self.bg.crop(box=(0,0,width,100))
+        self.bg = self.formatImage(Image.open('bg5.jpg'),new_w=CANVAS_WIDTH)[0]
+        self.exported_images = []
 
     def append(self,image,round_corner = -1):
         image, mask = self.formatImage(image,round_corner=round_corner)
-        new_height = self.canvas.height + image.height + BLOCK_GAP
-        new_canvas = Image.new('RGBA',size=(self.canvas.width,new_height))
         validbg = self.validBg(image.height+BLOCK_GAP)
         new_bg = validbg.crop(box=(0, 0, CANVAS_WIDTH-1, image.height+BLOCK_GAP))
-        new_canvas.paste(self.canvas)#Õ³Ö®Ç°µÄÍ¼
-        x = int((self.canvas.width-image.width)/2)
-        new_canvas.paste(new_bg,(0,self.canvas.height))
-        new_canvas.paste(image,(x,self.canvas.height),mask=mask)
-        self.canvas = new_canvas
-    def append_png(self,image):
-        # ½«image2½ÓÔÚimage1ÏÂÃæ
-        image= self.formatImage(image)
-        new_height = self.canvas.height + image.height + BLOCK_GAP
-        new_canvas = Image.new('RGBA',size=(self.canvas.width,new_height))
-        validbg = self.validBg(image.height+BLOCK_GAP)
-        new_bg = validbg.crop(box=(0, 0, CANVAS_WIDTH-1, image.height+BLOCK_GAP))
-        new_canvas.paste(self.canvas)#Õ³Ö®Ç°µÄÍ¼
-        x = int((self.canvas.width-image.width)/2)
-        new_canvas.paste(new_bg,(0,self.canvas.height))
-        new_canvas.paste(image,(x,self.canvas.height),mask=image)
-        self.canvas = new_canvas
+        new_bg.paste(image,(BLOCK_GAP,int(BLOCK_GAP/2)),mask=mask)
+        self.exported_images.append(new_bg)
+
+    # ¸ñÊ½»¯Í¼Æ¬
     def formatImage(self,img,new_w = IMAGE_WIDTH,round_corner = -1):
         # new_w = IMAGE_WIDTH
         new_h = int((new_w/img.width)*img.height)
@@ -71,9 +56,11 @@ class Canvas():
             draw.rectangle(xy=[d/2,0,w-d/2,h],fill=255)
             draw.rectangle(xy=[0,d/2,w,h-d/2],fill=255)
             # mask.show()
-            return new_img,mask
-        return new_img
+        else:
+            mask = new_img
+        return new_img,mask
 
+    #È·±£±³¾°¸ß¶È×ã¹»
     def validBg(self,asked_height):
         i=2
         bg = self.bg
@@ -84,30 +71,14 @@ class Canvas():
             bg = new_bg
             i+=1
         return bg
-    def export(self,save_to_disk = ""):
-        current_height = self.canvas.height
-        if current_height%EXPORT_HEIGHT == 0:
-            total_pages = current_height//EXPORT_HEIGHT
-        else:
-            total_pages = current_height//EXPORT_HEIGHT + 1
-        ex_imgs = []
-        for i in range(total_pages):
-            left,right = 0,self.canvas.width
-            top = i*EXPORT_HEIGHT
 
-            bottom = (i+1)*EXPORT_HEIGHT
-            if bottom > self.canvas.height :
-                bottom = self.canvas.height
-            img = self.canvas.crop(box=(left,top,right,bottom))
-            ex_imgs.append(img)
+    def export(self,save_to_disk = ""):
         if save_to_disk != "":
             if os.path.exists(save_to_disk):
                 shutil.rmtree(save_to_disk)
             os.mkdir(save_to_disk)
-            for key,item in enumerate(ex_imgs):
+            for key,item in enumerate(self.exported_images):
                 item.save(save_to_disk+'/ÌÔ±¦Í¼'+str(key)+'.jpg',quality=100)
-        return ex_imgs
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('score_file',help='ÇëÊäÈëÀÖÆ×µÚÒ»Ò³µÄÎÄ¼şÂ·¾¶',type=str)
@@ -122,8 +93,6 @@ if __name__ == '__main__':
     score_title     = Image.open('ÌÔ±¦/ÌÔ±¦Í¼0£ºÀÖÆ×Ô¤ÀÀ.jpg')
     score_img       = Image.open(args.score_file)
     score_bottom    = Image.open('ÌÔ±¦/ÌÔ±¦Í¼10£ºblank.jpg')
-
-
 
     if args.nofinger:
         IMAGES_LIST.remove('ÌÔ±¦/ÌÔ±¦Í¼4£ºÖ¸·¨±ê×¢.jpg')
@@ -142,7 +111,7 @@ if __name__ == '__main__':
 
     for key,img in enumerate(imgs):
         if key == 0:
-            c.append_png(img)
+            c.append(img)
         else:
             c.append(img,round_corner=50)
     ex_imgs = c.export(save_to_disk=output_dir)
